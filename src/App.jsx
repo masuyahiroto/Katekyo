@@ -8,6 +8,7 @@ import Homework from './components/Homework';
 import Workbook from './components/Workbook';
 import CalendarView from './components/CalendarView';
 import Tests from './components/Tests';
+import StudentView from './components/StudentView';
 
 const NAV = [
   { id: 'dashboard', label: 'ダッシュボード', icon: LayoutDashboard },
@@ -22,6 +23,20 @@ export default function App() {
   const [page, setPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const store = useStore();
+
+  const studentKey = new URLSearchParams(window.location.search).get('student');
+  if (studentKey) {
+    const student = store.students.items.find((s) => s.accessKey === studentKey);
+    if (!student) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: 8 }}>
+          <p style={{ fontSize: 16, fontWeight: 700 }}>無効なURLです</p>
+          <p style={{ color: 'var(--gray-500)', fontSize: 14 }}>先生に正しいURLを確認してください。</p>
+        </div>
+      );
+    }
+    return <StudentView student={student} store={store} />;
+  }
 
   const navigate = (id) => {
     setPage(id);

@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Plus, Trash2, X, User } from 'lucide-react';
+import { Plus, Trash2, X, User, Copy, Link } from 'lucide-react';
+
+const genKey = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
 const GRADES = ['小1','小2','小3','小4','小5','小6','中1','中2','中3','高1','高2','高3'];
 const SUBJECTS = ['国語','数学','英語','理科','社会'];
 
 function StudentModal({ initial, onSave, onClose }) {
-  const [form, setForm] = useState(initial ?? { name: '', grade: '', subjects: [], memo: '' });
+  const [form, setForm] = useState(initial ?? { name: '', grade: '', subjects: [], memo: '', accessKey: genKey() });
 
   const toggle = (sub) =>
     setForm((f) => ({
@@ -68,9 +70,27 @@ function StudentModal({ initial, onSave, onClose }) {
   );
 }
 
+function copyStudentUrl(key) {
+  const url = `${window.location.origin}${window.location.pathname}?student=${key}`;
+  navigator.clipboard.writeText(url).catch(() => {});
+}
+
 export default function Students({ store }) {
   const { students } = store;
   const [modal, setModal] = useState(null); // null | 'add' | student object
+  const [copied, setCopied] = useState(null);
+
+  const handleCopy = (e, key) => {
+    e.stopPropagation();
+    copyStudentUrl(key);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  const handleGenKey = (e, s) => {
+    e.stopPropagation();
+    students.update(s.id, { accessKey: genKey() });
+  };
 
   return (
     <div>
@@ -116,6 +136,34 @@ export default function Students({ store }) {
                 </div>
               )}
               {s.memo && <p className="text-sm text-gray mt-2">{s.memo}</p>}
+              <div className="divider" style={{ margin: '10px 0' }} />
+              <div className="flex items-center justify-between">
+                {s.accessKey ? (
+                  <>
+                    <span className="text-xs text-gray" style={{ fontFamily: 'monospace' }}>
+                      <Link size={11} style={{ display: 'inline', marginRight: 3 }} />
+                      {s.accessKey}
+                    </span>
+                    <button
+                      className="btn btn-sm btn-ghost"
+                      style={{ fontSize: 11, padding: '3px 8px' }}
+                      onClick={(e) => handleCopy(e, s.accessKey)}
+                    >
+                      <Copy size={11} />
+                      {copied === s.accessKey ? 'コピー済み' : 'URLをコピー'}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    style={{ fontSize: 11 }}
+                    onClick={(e) => handleGenKey(e, s)}
+                  >
+                    <Link size={11} />
+                    URLを発行
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
