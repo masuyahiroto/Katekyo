@@ -24,6 +24,14 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const store = useStore();
 
+  if (!store.ready) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: 8 }}>
+        <p style={{ fontSize: 16, color: 'var(--gray-500)' }}>読み込み中...</p>
+      </div>
+    );
+  }
+
   const studentKey = new URLSearchParams(window.location.search).get('student');
   if (studentKey) {
     const student = store.students.items.find((s) => s.accessKey === studentKey);

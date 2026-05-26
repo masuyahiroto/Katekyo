@@ -1,20 +1,12 @@
-const KEYS = {
-  students: 'educate_students',
-  homework: 'educate_homework',
-  workbooks: 'educate_workbooks',
-  tests: 'educate_tests',
-  sessions: 'educate_sessions',
-};
-
-export function load(key) {
-  try {
-    const data = localStorage.getItem(KEYS[key]);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export function save(key, data) {
-  localStorage.setItem(KEYS[key], JSON.stringify(data));
+  setDoc(doc(db, 'educate', key), { items: data });
+}
+
+export function subscribe(key, callback) {
+  return onSnapshot(doc(db, 'educate', key), (snap) => {
+    callback(snap.exists() ? snap.data().items : []);
+  });
 }

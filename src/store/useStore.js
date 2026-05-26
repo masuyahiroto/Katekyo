@@ -1,8 +1,17 @@
-import { useState, useCallback } from 'react';
-import { load, save } from './storage';
+import { useState, useCallback, useEffect } from 'react';
+import { save, subscribe } from './storage';
 
 function useCollection(key) {
-  const [items, setItems] = useState(() => load(key));
+  const [items, setItems] = useState([]);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribe(key, (data) => {
+      setItems(data);
+      setReady(true);
+    });
+    return unsub;
+  }, [key]);
 
   const add = useCallback((item) => {
     setItems((prev) => {
@@ -28,7 +37,7 @@ function useCollection(key) {
     });
   }, [key]);
 
-  return { items, add, update, remove };
+  return { items, add, update, remove, ready };
 }
 
 export function useStore() {
@@ -37,5 +46,8 @@ export function useStore() {
   const workbooks = useCollection('workbooks');
   const tests = useCollection('tests');
   const sessions = useCollection('sessions');
-  return { students, homework, workbooks, tests, sessions };
+
+  const ready = students.ready && homework.ready && workbooks.ready && tests.ready && sessions.ready;
+
+  return { students, homework, workbooks, tests, sessions, ready };
 }
