@@ -6,9 +6,12 @@ function useCollection(key) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribe(key, (data) => {
+    const unsub = subscribe(key, (data, fromCache) => {
       setItems(data);
-      setReady(true);
+      // キャッシュが空の場合はサーバーの応答を待つ（スマホ初回アクセス時の誤検知防止）
+      if (!fromCache || data.length > 0) {
+        setReady(true);
+      }
     });
     return unsub;
   }, [key]);

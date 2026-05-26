@@ -6,7 +6,11 @@ export function save(key, data) {
 }
 
 export function subscribe(key, callback) {
-  return onSnapshot(doc(db, 'educate', key), (snap) => {
-    callback(snap.exists() ? snap.data().items : []);
-  });
+  return onSnapshot(
+    doc(db, 'educate', key),
+    { includeMetadataChanges: true },
+    (snap) => {
+      callback(snap.exists() ? snap.data().items : [], snap.metadata.fromCache);
+    }
+  );
 }
