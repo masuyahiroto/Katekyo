@@ -1,6 +1,118 @@
 import { useState } from 'react';
-import { CheckCircle, Circle, BookOpen, ClipboardList, User, ChevronDown, ChevronUp } from 'lucide-react';
-import { format } from 'date-fns';
+import { CheckCircle, Circle, BookOpen, ClipboardList, User, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isToday } from 'date-fns';
+import { ja } from 'date-fns/locale';
+
+const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
+const SUBJECTS = ['国語', '数学', '英語', '理科', '社会', 'その他'];
+
+function StudentWorkbookModal({ studentId, onSave, onClose }) {
+  const [form, setForm] = useState({ subject: '', title: '', totalPages: 100, startPage: 1 });
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.title.trim() || form.totalPages < 1) return;
+    const pages = {};
+    for (let i = form.startPage; i <= form.startPage + form.totalPages - 1; i++) pages[i] = false;
+    onSave({ ...form, studentId, pages, totalPages: Number(form.totalPages), startPage: Number(form.startPage) });
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-title">ワークを追加</span>
+          <button className="close-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <form onSubmit={submit}>
+          <div className="form-group">
+            <label>科目</label>
+            <select className="form-control" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}>
+              <option value="">選択してください</option>
+              {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>ワーク名 *</label>
+            <input className="form-control" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="例：中学数学 標準問題集" />
+          </div>
+          <div className="grid-2">
+            <div className="form-group">
+              <label>開始ページ</label>
+              <input type="number" className="form-control" min={1} value={form.startPage} onChange={(e) => setForm({ ...form, startPage: Number(e.target.value) })} />
+            </div>
+            <div className="form-group">
+              <label>総ページ数</label>
+              <input type="number" className="form-control" min={1} max={500} value={form.totalPages} onChange={(e) => setForm({ ...form, totalPages: Number(e.target.value) })} />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-between mt-3">
+            <button type="button" className="btn btn-ghost" onClick={onClose}>キャンセル</button>
+            <button type="submit" className="btn btn-primary"><Plus size={16} />追加</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function StudentCalendar({ student, store }) {
+  const [current, setCurrent] = useState(new Date());
+
+  const monthStart = startOfMonth(current);
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const gridEnd = endOfWeek(endOfMonth(current), { weekStartsOn: 0 });
+
+  const days = [];
+  let day = gridStart;
+  while (day <= gridEnd) { days.push(day); day = addDays(day, 1); }
+
+  const getEvents = (dateStr) => {
+    const ev = [];
+    store.sessions.items.filter((s) => s.studentId === student.id && s.date === dateStr)
+      .forEach((s) => ev.push({ type: 'session', label: `授業 ${s.startTime}` }));
+    store.homework.items.filter((h) => h.studentId === student.id && h.dueDate === dateStr && !h.done)
+      .forEach((h) => ev.push({ type: 'homework', label: h.title }));
+    store.tests.items.filter((t) => t.studentId === student.id && t.date === dateStr)
+      .forEach((t) => ev.push({ type: 'test', label: t.title }));
+    return ev;
+  };
+
+  return (
+    <div className="calendar">
+      <div className="calendar-header">
+        <button className="btn btn-ghost btn-sm" onClick={() => setCurrent(subMonths(current, 1))}><ChevronLeft size={16} /></button>
+        <h3>{format(current, 'yyyy年M月', { locale: ja })}</h3>
+        <button className="btn btn-ghost btn-sm" onClick={() => setCurrent(addMonths(current, 1))}><ChevronRight size={16} /></button>
+      </div>
+      <div className="calendar-grid">
+        <div className="calendar-days-grid">
+          {DAY_NAMES.map((d, i) => (
+            <div key={d} className="calendar-day-name" style={{ color: i === 0 ? '#dc2626' : i === 6 ? '#4f46e5' : undefined }}>{d}</div>
+          ))}
+          {days.map((d) => {
+            const dateStr = format(d, 'yyyy-MM-dd');
+            const events = getEvents(dateStr);
+            const dow = d.getDay();
+            return (
+              <div key={dateStr} className={`calendar-cell ${!isSameMonth(d, current) ? 'other-month' : ''} ${isToday(d) ? 'today' : ''}`}>
+                <div className="calendar-cell-date" style={{ color: dow === 0 ? '#dc2626' : dow === 6 ? '#4f46e5' : undefined }}>
+                  {format(d, 'd')}
+                </div>
+                <div className="calendar-events">
+                  {events.slice(0, 2).map((ev, i) => (
+                    <div key={i} className={`calendar-event event-${ev.type}`}>{ev.label}</div>
+                  ))}
+                  {events.length > 2 && <div className="calendar-event" style={{ background: 'var(--gray-100)', color: 'var(--gray-500)' }}>+{events.length - 2}</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function PageGrid({ wb, onToggle }) {
   const pages = wb.pages ?? {};
@@ -38,6 +150,7 @@ export default function StudentView({ student, store }) {
   const [tab, setTab] = useState('homework');
   const [hwFilter, setHwFilter] = useState('all');
   const [expanded, setExpanded] = useState(null);
+  const [workbookModal, setWorkbookModal] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -84,6 +197,7 @@ export default function StudentView({ student, store }) {
   ];
 
   return (
+    <>
     <div style={{ minHeight: '100vh', background: 'var(--gray-50)' }}>
       <div style={{ background: 'white', borderBottom: '1px solid var(--gray-200)', padding: '16px 20px' }}>
         <div className="flex items-center gap-2">
@@ -179,9 +293,12 @@ export default function StudentView({ student, store }) {
 
         {tab === 'workbook' && (
           <div>
-            <div className="page-header">
-              <h2>ワーク進捗</h2>
-              <p>問題集のページごとの進捗</p>
+            <div className="page-header flex justify-between items-center">
+              <div>
+                <h2>ワーク進捗</h2>
+                <p>問題集のページごとの進捗</p>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={() => setWorkbookModal(true)}><Plus size={14} />ワークを追加</button>
             </div>
             {myWb.length === 0 ? (
               <div className="card">
@@ -275,24 +392,33 @@ export default function StudentView({ student, store }) {
         {tab === 'calendar' && (
           <div>
             <div className="page-header">
-              <h2>今後の予定</h2>
-              <p>授業・宿題提出日・テストの一覧</p>
+              <h2>カレンダー</h2>
+              <p>授業・宿題提出日・テストの予定</p>
             </div>
-            <div className="card">
-              {upcoming.length === 0 ? (
-                <div className="empty-state"><p>今後の予定はありません</p></div>
-              ) : (
-                upcoming.map((ev, i) => (
+            <StudentCalendar student={student} store={store} />
+            {upcoming.length > 0 && (
+              <div className="card mt-3">
+                <p className="text-sm font-bold mb-2">今後の予定一覧</p>
+                {upcoming.map((ev, i) => (
                   <div key={i} className="flex items-center gap-2 mb-2">
                     <span className={`calendar-event event-${ev.type}`} style={{ flexShrink: 0, padding: '2px 6px', borderRadius: 4, fontSize: 11 }}>{ev.date}</span>
                     <span className="text-sm">{ev.label}</span>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
     </div>
+
+      {workbookModal && (
+        <StudentWorkbookModal
+          studentId={student.id}
+          onSave={(data) => { store.workbooks.add(data); setWorkbookModal(false); }}
+          onClose={() => setWorkbookModal(false)}
+        />
+      )}
+    </>
   );
 }

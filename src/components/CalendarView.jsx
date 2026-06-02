@@ -117,12 +117,10 @@ export default function CalendarView({ store }) {
             <button className="btn btn-ghost btn-sm" onClick={() => setCurrent(addMonths(current, 1))}><ChevronRight size={16} /></button>
           </div>
           <div className="calendar-grid">
-            <div className="calendar-days-header">
+            <div className="calendar-days-grid">
               {DAY_NAMES.map((d, i) => (
                 <div key={d} className="calendar-day-name" style={{ color: i === 0 ? '#dc2626' : i === 6 ? '#4f46e5' : undefined }}>{d}</div>
               ))}
-            </div>
-            <div className="calendar-days">
               {days.map((d) => {
                 const dateStr = format(d, 'yyyy-MM-dd');
                 const events = getEvents(dateStr);

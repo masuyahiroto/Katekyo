@@ -213,9 +213,8 @@ tr:hover td { background: var(--gray-50); }
 .calendar-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--gray-200); }
 .calendar-header h3 { font-size: 16px; font-weight: 700; }
 .calendar-grid { padding: 16px; }
-.calendar-days-header { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
-.calendar-day-name { text-align: center; font-size: 12px; font-weight: 600; color: var(--gray-500); padding: 4px; }
-.calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.calendar-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.calendar-day-name { text-align: center; font-size: 12px; font-weight: 600; color: var(--gray-500); padding: 4px 4px 8px; }
 .calendar-cell { min-height: 70px; border-radius: var(--radius); padding: 4px; }
 .calendar-cell.other-month { opacity: 0.35; }
 .calendar-cell.today { background: var(--primary-light); }

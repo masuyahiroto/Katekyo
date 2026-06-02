@@ -1,6 +1,80 @@
 import { useState } from 'react';
-import { Plus, X, Trash2, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Trash2, BookOpen, ChevronDown, ChevronUp, Upload } from 'lucide-react';
 import { format } from 'date-fns';
+
+const IMPORT_TEMPLATE = `{
+  "title": "確認テスト",
+  "subject": "数学",
+  "date": "2026-06-10",
+  "questions": [
+    { "text": "問題文", "type": "記述", "answer": "模範解答", "points": 5 },
+    { "text": "選択問題", "type": "選択", "choices": ["A", "B", "C", "D"], "answer": "0", "points": 10 },
+    { "text": "正誤問題", "type": "○×", "answer": "○", "points": 5 }
+  ]
+}`;
+
+function ImportModal({ students, onSave, onClose }) {
+  const [studentId, setStudentId] = useState('');
+  const [json, setJson] = useState('');
+  const [error, setError] = useState('');
+
+  const submit = () => {
+    if (!studentId) { setError('生徒を選択してください'); return; }
+    try {
+      const data = JSON.parse(json);
+      if (!data.title?.trim()) { setError('title が必要です'); return; }
+      const questions = (data.questions ?? []).map((q) => ({
+        text: q.text ?? '',
+        type: q.type ?? '記述',
+        choices: q.choices ?? ['', '', '', ''],
+        answer: String(q.answer ?? ''),
+        points: Number(q.points ?? 5),
+      }));
+      onSave({ studentId, title: data.title, subject: data.subject ?? '', date: data.date ?? format(new Date(), 'yyyy-MM-dd'), questions });
+    } catch {
+      setError('JSONの形式が正しくありません');
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal" style={{ maxWidth: 560 }}>
+        <div className="modal-header">
+          <span className="modal-title">JSONでテストを作成</span>
+          <button className="close-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <div className="form-group">
+          <label>生徒 *</label>
+          <select className="form-control" value={studentId} onChange={(e) => setStudentId(e.target.value)}>
+            <option value="">選択してください</option>
+            {students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label>JSONを貼り付け（形式は下記参照）</label>
+          <textarea
+            className="form-control"
+            rows={10}
+            value={json}
+            onChange={(e) => { setJson(e.target.value); setError(''); }}
+            placeholder={IMPORT_TEMPLATE}
+            style={{ fontFamily: 'monospace', fontSize: 12 }}
+          />
+        </div>
+        {error && <p className="text-sm" style={{ color: 'var(--danger)', marginBottom: 8 }}>{error}</p>}
+        <details style={{ marginBottom: 12 }}>
+          <summary className="text-xs text-gray" style={{ cursor: 'pointer' }}>フォーマット例を表示</summary>
+          <pre style={{ fontSize: 11, background: 'var(--gray-100)', padding: 8, borderRadius: 6, marginTop: 6, overflowX: 'auto' }}>{IMPORT_TEMPLATE}</pre>
+          <p className="text-xs text-gray mt-1">※ type は「記述」「選択」「○×」、選択肢の answer は 0 始まりのインデックス文字列</p>
+        </details>
+        <div className="flex gap-2 justify-between">
+          <button className="btn btn-ghost" onClick={onClose}>キャンセル</button>
+          <button className="btn btn-primary" onClick={submit}><Upload size={14} />読み込む</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const SUBJECTS = ['国語', '数学', '英語', '理科', '社会', 'その他'];
 const Q_TYPES = ['記述', '選択', '○×'];
@@ -215,6 +289,7 @@ function ScoreModal({ test, onSave, onClose }) {
 export default function Tests({ store }) {
   const { students, tests } = store;
   const [createModal, setCreateModal] = useState(false);
+  const [importModal, setImportModal] = useState(false);
   const [scoreModal, setScoreModal] = useState(null);
   const [expanded, setExpanded] = useState(null);
 
@@ -230,7 +305,10 @@ export default function Tests({ store }) {
           <h2>テスト管理</h2>
           <p>テストの作成・採点・記録を管理します</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setCreateModal(true)}><Plus size={16} />テストを作成</button>
+        <div className="flex gap-2">
+          <button className="btn btn-ghost" onClick={() => setImportModal(true)}><Upload size={16} />JSONで読み込む</button>
+          <button className="btn btn-primary" onClick={() => setCreateModal(true)}><Plus size={16} />テストを作成</button>
+        </div>
       </div>
 
       {sorted.length === 0 ? (
@@ -307,6 +385,13 @@ export default function Tests({ store }) {
           students={students.items}
           onSave={(data) => { tests.add(data); setCreateModal(false); }}
           onClose={() => setCreateModal(false)}
+        />
+      )}
+      {importModal && (
+        <ImportModal
+          students={students.items}
+          onSave={(data) => { tests.add(data); setImportModal(false); }}
+          onClose={() => setImportModal(false)}
         />
       )}
       {scoreModal && (
