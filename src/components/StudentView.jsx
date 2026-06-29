@@ -798,6 +798,7 @@ export default function StudentView({ student, store }) {
   const [expanded, setExpanded] = useState(null);
   const [workbookModal, setWorkbookModal] = useState(false);
   const [eventModal, setEventModal] = useState(null); // null | date string
+  const [calendarView, setCalendarView] = useState('calendar'); // 'calendar' | 'list'
   // 自主テスト
   const [selfTestMode, setSelfTestMode] = useState('list'); // 'list' | 'create' | 'take' | 'result'
   const [takingTest, setTakingTest] = useState(null);
@@ -1115,41 +1116,90 @@ export default function StudentView({ student, store }) {
           <div>
             <div className="page-header flex justify-between items-center">
               <div>
-                <h2>カレンダー</h2>
-                <p>授業・宿題提出日・テストの予定、自分の予定</p>
+                <h2>今後の予定</h2>
+                <p>授業・宿題提出日・テスト・自分の予定</p>
               </div>
-              <button className="btn btn-primary btn-sm" onClick={() => setEventModal(format(new Date(), 'yyyy-MM-dd'))}><Plus size={14} />予定を追加</button>
+              <div className="flex gap-2">
+                <div className="flex" style={{ background: 'var(--gray-100)', borderRadius: 8, padding: 3, gap: 2 }}>
+                  <button
+                    className={`btn btn-sm ${calendarView === 'calendar' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 10px' }}
+                    onClick={() => setCalendarView('calendar')}
+                  >
+                    カレンダー
+                  </button>
+                  <button
+                    className={`btn btn-sm ${calendarView === 'list' ? 'btn-primary' : 'btn-ghost'}`}
+                    style={{ padding: '4px 10px' }}
+                    onClick={() => setCalendarView('list')}
+                  >
+                    リスト
+                  </button>
+                </div>
+                <button className="btn btn-primary btn-sm" onClick={() => setEventModal(format(new Date(), 'yyyy-MM-dd'))}>
+                  <Plus size={14} />予定を追加
+                </button>
+              </div>
             </div>
+
+            {/* 凡例 */}
             <div className="flex gap-2 mb-3" style={{ flexWrap: 'wrap', fontSize: 12 }}>
               <span className="calendar-event event-session">授業</span>
               <span className="calendar-event event-homework">宿題</span>
               <span className="calendar-event event-test">テスト</span>
               <span className="calendar-event" style={{ background: '#4f46e522', color: '#4f46e5', borderLeft: '2px solid #4f46e5' }}>マイ予定</span>
             </div>
-            <StudentCalendar student={student} store={store} onAddEvent={(date) => setEventModal(date)} />
-            {upcoming.length > 0 && (
-              <div className="card mt-3">
-                <p className="text-sm font-bold mb-2">今後の予定一覧</p>
-                {[
+
+            {calendarView === 'calendar' ? (
+              <StudentCalendar student={student} store={store} onAddEvent={(date) => setEventModal(date)} />
+            ) : (
+              /* リスト表示 */
+              (() => {
+                const allEvents = [
                   ...upcoming,
                   ...store.studentEvents.items
                     .filter((e) => e.studentId === student.id && e.date >= today)
                     .map((e) => ({ date: e.date, label: e.title, type: 'student', color: EVENT_COLORS[e.type] || EVENT_COLORS['その他'] }))
-                ]
-                  .sort((a, b) => a.date.localeCompare(b.date))
-                  .map((ev, i) => (
-                    <div key={i} className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`calendar-event ${ev.color ? '' : `event-${ev.type}`}`}
-                        style={ev.color ? { background: ev.color + '22', color: ev.color, borderLeft: `2px solid ${ev.color}`, flexShrink: 0, padding: '2px 6px', borderRadius: 4, fontSize: 11 } : { flexShrink: 0, padding: '2px 6px', borderRadius: 4, fontSize: 11 }}
-                      >
-                        {ev.date}
-                      </span>
-                      <span className="text-sm">{ev.label}</span>
+                ].sort((a, b) => a.date.localeCompare(b.date));
+
+                if (allEvents.length === 0) {
+                  return (
+                    <div className="card">
+                      <div className="empty-state"><p>今後の予定はありません</p></div>
                     </div>
-                  ))
+                  );
                 }
-              </div>
+
+                // 日付でグループ化
+                const grouped = allEvents.reduce((acc, ev) => {
+                  if (!acc[ev.date]) acc[ev.date] = [];
+                  acc[ev.date].push(ev);
+                  return acc;
+                }, {});
+
+                return (
+                  <div className="card">
+                    {Object.entries(grouped).map(([date, events]) => (
+                      <div key={date} style={{ marginBottom: 16 }}>
+                        <p className="text-sm font-bold" style={{ color: 'var(--gray-700)', marginBottom: 6, paddingBottom: 4, borderBottom: '1px solid var(--gray-200)' }}>
+                          {date}
+                        </p>
+                        {events.map((ev, i) => (
+                          <div key={i} className="flex items-center gap-2 mb-2" style={{ paddingLeft: 8 }}>
+                            <span
+                              className={`calendar-event ${ev.color ? '' : `event-${ev.type}`}`}
+                              style={ev.color ? { background: ev.color + '22', color: ev.color, borderLeft: `2px solid ${ev.color}`, flexShrink: 0 } : { flexShrink: 0 }}
+                            >
+                              {ev.type === 'session' ? '授業' : ev.type === 'homework' ? '宿題' : ev.type === 'test' ? 'テスト' : 'マイ予定'}
+                            </span>
+                            <span className="text-sm">{ev.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()
             )}
           </div>
         )}
