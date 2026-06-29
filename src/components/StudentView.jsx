@@ -574,6 +574,65 @@ function SelfTestListView({ student, store, onCreate, onTake }) {
   );
 }
 
+// ─── 生徒用宿題追加モーダル ──────────────────────────────────────────────────────
+function StudentHwModal({ studentId, onSave, onClose }) {
+  const [form, setForm] = useState({ subject: '', title: '', dueDate: '', memo: '' });
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.title.trim()) return;
+    onSave({
+      ...form,
+      studentId,
+      done: false,
+      assignedDate: format(new Date(), 'yyyy-MM-dd'),
+      addedBy: 'student',
+    });
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-title">宿題を追加</span>
+          <button className="close-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <form onSubmit={submit}>
+          <div className="form-group">
+            <label>科目</label>
+            <select className="form-control" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}>
+              <option value="">選択してください</option>
+              {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>内容 *</label>
+            <input
+              className="form-control"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="例：ドリル p.20〜22"
+              autoFocus
+            />
+          </div>
+          <div className="form-group">
+            <label>提出期限</label>
+            <input type="date" className="form-control" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label>メモ</label>
+            <textarea className="form-control" rows={2} value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} />
+          </div>
+          <div className="flex gap-2 justify-between mt-3">
+            <button type="button" className="btn btn-ghost" onClick={onClose}>キャンセル</button>
+            <button type="submit" className="btn btn-primary"><Plus size={16} />追加</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── 日報 ─────────────────────────────────────────────────────────────────────
 const REPORT_FIELDS = [
   { key: 'didContent',  label: 'やったこと',        placeholder: '今日勉強した内容を書いてください' },
@@ -735,6 +794,7 @@ function DailyReportTab({ student, store, today, myReports, todayReport }) {
 export default function StudentView({ student, store }) {
   const [tab, setTab] = useState('homework');
   const [hwFilter, setHwFilter] = useState('all');
+  const [hwModal, setHwModal] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [workbookModal, setWorkbookModal] = useState(false);
   const [eventModal, setEventModal] = useState(null); // null | date string
@@ -830,9 +890,14 @@ export default function StudentView({ student, store }) {
 
         {tab === 'homework' && (
           <div>
-            <div className="page-header">
-              <h2>宿題管理</h2>
-              <p>宿題の確認と完了の記録</p>
+            <div className="page-header flex justify-between items-center">
+              <div>
+                <h2>宿題管理</h2>
+                <p>宿題の確認と完了の記録</p>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={() => setHwModal(true)}>
+                <Plus size={14} />宿題を追加
+              </button>
             </div>
             <div className="flex gap-2 mb-3">
               {[['all', 'すべて'], ['pending', '未完了'], ['done', '完了済み']].map(([v, label]) => (
@@ -854,6 +919,7 @@ export default function StudentView({ student, store }) {
                         <th>科目</th>
                         <th>内容</th>
                         <th>提出期限</th>
+                        <th></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -871,13 +937,25 @@ export default function StudentView({ student, store }) {
                               </button>
                             </td>
                             <td>{h.subject && <span className="badge badge-gray">{h.subject}</span>}</td>
-                            <td style={{ textDecoration: h.done ? 'line-through' : 'none' }}>{h.title}</td>
+                            <td style={{ textDecoration: h.done ? 'line-through' : 'none' }}>
+                              {h.title}
+                              {h.addedBy === 'student' && (
+                                <span className="badge badge-primary" style={{ marginLeft: 6, fontSize: 10 }}>自分で追加</span>
+                              )}
+                            </td>
                             <td>
                               {h.dueDate ? (
                                 <span className={`badge ${h.done ? 'badge-gray' : overdue ? 'badge-danger' : 'badge-warning'}`}>
                                   {h.dueDate}
                                 </span>
                               ) : '—'}
+                            </td>
+                            <td>
+                              {h.addedBy === 'student' && (
+                                <button className="btn btn-sm btn-ghost" onClick={() => store.homework.remove(h.id)}>
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
                             </td>
                           </tr>
                         );
@@ -1078,6 +1156,13 @@ export default function StudentView({ student, store }) {
       </div>
     </div>
 
+      {hwModal && (
+        <StudentHwModal
+          studentId={student.id}
+          onSave={(data) => { store.homework.add(data); setHwModal(false); }}
+          onClose={() => setHwModal(false)}
+        />
+      )}
       {workbookModal && (
         <StudentWorkbookModal
           studentId={student.id}
