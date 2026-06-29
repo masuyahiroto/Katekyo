@@ -4,36 +4,9 @@
 
 ---
 
-## 【最優先】1. デプロイする
+## ~~【最優先】1. デプロイする~~ ✅ 完了（2026-06-29）
 
-### 何が起きているか
-`vite.config.js` のPWA設定を修正済み（`skipWaiting: true` 追加）だが、
-まだVercelに反映されていない。このコマンドを実行するまで本番サイトは古いままになる。
-
-### 手順
-
-**方法A: Gitプッシュ（推奨）**
-
-```bash
-cd C:\Users\masum\Documents\Educate\educate-app
-git push origin master
-```
-
-Vercelが自動的にビルド＆デプロイする。完了まで約1〜2分。
-
-進捗はここで確認：
-https://vercel.com/masuyahirotos-projects/educate-app/deployments
-
-**方法B: Vercel CLI**
-
-```bash
-cd C:\Users\masum\Documents\Educate\educate-app
-vercel --prod
-```
-
-### 完了確認
-デプロイ完了後、本番URLにアクセスして動作確認する：
-https://educate-app-masuyahirotos-projects.vercel.app
+デプロイ済み。本番URL: https://educate-app-masuyahirotos-projects.vercel.app
 
 ---
 
@@ -139,4 +112,5 @@ Vercel CLIで確認したところ `VITE_FIREBASE_STORAGE_BUCKE` と末尾が
 - [x] `vite.config.js` に `skipWaiting: true` と `clientsClaim: true` を追加して修正
 - [x] クリーンビルド実行（dist 再生成済み）
 - [x] `.gitignore` に `.env*` を追加
-- [x] Gitコミット済み（あとはpushするだけ）
+- [x] Gitコミット済み
+- [x] Vercelへのデプロイ完了（2026-06-29）
