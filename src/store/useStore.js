@@ -51,9 +51,9 @@ export function useStore() {
   const sessions = useCollection('sessions');
   const studentEvents = useCollection('studentEvents');
   const selfTests = useCollection('selfTests');
+  const dailyReports = useCollection('dailyReports');
 
   const ready = students.ready && homework.ready && workbooks.ready && tests.ready && sessions.ready && studentEvents.ready;
-  // selfTests は新規コレクションのため ready チェックから除外（存在しない場合でもブロックしない）
 
-  return { students, homework, workbooks, tests, sessions, studentEvents, selfTests, ready };
+  return { students, homework, workbooks, tests, sessions, studentEvents, selfTests, dailyReports, ready };
 }

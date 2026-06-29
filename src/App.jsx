@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, Users, ClipboardList, BookOpen, Calendar, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, BookOpen, Calendar, Menu, X, FileText } from 'lucide-react';
 import './App.css';
 import { useStore } from './store/useStore';
 import Dashboard from './components/Dashboard';
@@ -9,6 +9,7 @@ import Workbook from './components/Workbook';
 import CalendarView from './components/CalendarView';
 import Tests from './components/Tests';
 import StudentView from './components/StudentView';
+import DailyReports from './components/DailyReports';
 
 const NAV = [
   { id: 'dashboard', label: 'ダッシュボード', icon: LayoutDashboard },
@@ -17,6 +18,7 @@ const NAV = [
   { id: 'workbook', label: 'ワーク進捗', icon: BookOpen },
   { id: 'calendar', label: 'カレンダー', icon: Calendar },
   { id: 'tests', label: 'テスト', icon: BookOpen },
+  { id: 'dailyreports', label: '日報管理', icon: FileText },
 ];
 
 export default function App() {
@@ -59,6 +61,7 @@ export default function App() {
       case 'workbook': return <Workbook store={store} />;
       case 'calendar': return <CalendarView store={store} />;
       case 'tests': return <Tests store={store} />;
+      case 'dailyreports': return <DailyReports store={store} />;
       default: return null;
     }
   };

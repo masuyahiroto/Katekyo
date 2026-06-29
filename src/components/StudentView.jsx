@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, Circle, BookOpen, ClipboardList, User, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, X, Trash2 } from 'lucide-react';
+import { CheckCircle, Circle, BookOpen, ClipboardList, User, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Plus, X, Trash2, FileText, MessageSquare } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isToday } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
@@ -574,6 +574,164 @@ function SelfTestListView({ student, store, onCreate, onTake }) {
   );
 }
 
+// ─── 日報 ─────────────────────────────────────────────────────────────────────
+const REPORT_FIELDS = [
+  { key: 'didContent',  label: 'やったこと',        placeholder: '今日勉強した内容を書いてください' },
+  { key: 'results',     label: '成果・結果',          placeholder: '理解できたこと、解けた問題など' },
+  { key: 'learned',     label: '学んだこと・気づき',  placeholder: '新しく知ったこと、発見したことなど' },
+  { key: 'unclear',     label: 'わからなかったこと',  placeholder: '疑問に残ったこと、次に質問したいことなど' },
+];
+
+function DailyReportTab({ student, store, today, myReports, todayReport }) {
+  const emptyForm = { didContent: '', results: '', learned: '', unclear: '' };
+  const [mode, setMode] = useState('list'); // 'list' | 'write'
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [openId, setOpenId] = useState(null);
+
+  const startNew = () => {
+    setForm(todayReport ? { didContent: todayReport.didContent, results: todayReport.results, learned: todayReport.learned, unclear: todayReport.unclear } : emptyForm);
+    setEditingId(todayReport ? todayReport.id : null);
+    setMode('write');
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.didContent.trim()) return;
+    const data = { ...form, studentId: student.id, date: today };
+    if (editingId) {
+      store.dailyReports.update(editingId, data);
+    } else {
+      store.dailyReports.add(data);
+    }
+    setMode('list');
+    setForm(emptyForm);
+    setEditingId(null);
+  };
+
+  if (mode === 'write') {
+    return (
+      <div>
+        <div className="page-header flex justify-between items-center">
+          <div>
+            <h2>今日の日報</h2>
+            <p>{today}</p>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={() => setMode('list')}>← 一覧に戻る</button>
+        </div>
+        <form onSubmit={submit}>
+          <div className="card">
+            {REPORT_FIELDS.map(({ key, label, placeholder }) => (
+              <div className="form-group" key={key}>
+                <label>{label}</label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  placeholder={placeholder}
+                  value={form[key]}
+                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                />
+              </div>
+            ))}
+            <div className="flex gap-2 justify-between mt-2">
+              <button type="button" className="btn btn-ghost" onClick={() => setMode('list')}>キャンセル</button>
+              <button type="submit" className="btn btn-primary"><FileText size={14} />日報を保存</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="page-header flex justify-between items-center">
+        <div>
+          <h2>日報</h2>
+          <p>毎日の学習記録を残しましょう</p>
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={startNew}>
+          <Plus size={14} />{todayReport ? '今日の日報を編集' : '今日の日報を書く'}
+        </button>
+      </div>
+
+      {todayReport && !todayReport.teacherComment && (
+        <div style={{ background: 'var(--primary-light)', borderRadius: 8, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: 'var(--primary)' }}>
+          今日の日報を提出済みです。先生のコメントをお待ちください。
+        </div>
+      )}
+      {todayReport && todayReport.teacherComment && (
+        <div style={{ background: '#f0fdf4', borderRadius: 8, padding: '10px 16px', marginBottom: 16, borderLeft: '3px solid var(--success)' }}>
+          <p className="text-xs font-bold" style={{ color: 'var(--success)' }}>先生からコメントが届きました</p>
+          <p className="text-sm mt-1" style={{ whiteSpace: 'pre-wrap' }}>{todayReport.teacherComment}</p>
+        </div>
+      )}
+
+      {myReports.length === 0 ? (
+        <div className="card">
+          <div className="empty-state">
+            <FileText size={40} color="var(--gray-300)" />
+            <p>まだ日報がありません。「今日の日報を書く」から始めましょう！</p>
+          </div>
+        </div>
+      ) : (
+        myReports.map((r) => {
+          const isOpen = openId === r.id;
+          return (
+            <div className="card mb-3" key={r.id}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2" style={{ flex: 1 }}>
+                  <button className="close-btn" onClick={() => setOpenId(isOpen ? null : r.id)}>
+                    {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
+                  <div style={{ flex: 1 }}>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold">{r.date}</p>
+                      {r.date === today && <span className="badge badge-primary">今日</span>}
+                      {r.teacherComment
+                        ? <span className="badge badge-success"><MessageSquare size={10} style={{ marginRight: 3 }} />コメントあり</span>
+                        : <span className="badge badge-gray">未コメント</span>
+                      }
+                    </div>
+                    {!isOpen && (
+                      <p className="text-xs text-gray mt-1" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 280 }}>
+                        {r.didContent}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <button className="btn btn-sm btn-ghost" onClick={() => store.dailyReports.remove(r.id)}>
+                  <Trash2 size={13} />
+                </button>
+              </div>
+
+              {isOpen && (
+                <div className="mt-3">
+                  <div className="divider" />
+                  {REPORT_FIELDS.map(({ key, label }) => (
+                    <div key={key} style={{ marginBottom: 10 }}>
+                      <p className="text-xs font-bold" style={{ color: 'var(--primary)', marginBottom: 3 }}>{label}</p>
+                      <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{r[key] || '（未記入）'}</p>
+                    </div>
+                  ))}
+                  {r.teacherComment && (
+                    <div style={{ background: '#f0fdf4', borderRadius: 6, padding: '10px 14px', marginTop: 8, borderLeft: '3px solid var(--success)' }}>
+                      <p className="text-xs font-bold" style={{ color: 'var(--success)', marginBottom: 4 }}>
+                        先生のコメント {r.commentedAt && <span style={{ fontWeight: 400 }}>— {r.commentedAt}</span>}
+                      </p>
+                      <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{r.teacherComment}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 export default function StudentView({ student, store }) {
   const [tab, setTab] = useState('homework');
   const [hwFilter, setHwFilter] = useState('all');
@@ -622,11 +780,18 @@ export default function StudentView({ student, store }) {
   const pendingCount = store.homework.items.filter((h) => h.studentId === student.id && !h.done).length;
   const upcomingTestCount = store.tests.items.filter((t) => t.studentId === student.id && t.date >= today).length;
 
+  const myReports = store.dailyReports.items
+    .filter((r) => r.studentId === student.id)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const todayReport = myReports.find((r) => r.date === today);
+
   const TABS = [
     { id: 'homework', label: '宿題管理', badge: pendingCount > 0 ? pendingCount : null },
     { id: 'workbook', label: 'ワーク進捗' },
     { id: 'tests', label: 'テスト', badge: upcomingTestCount > 0 ? upcomingTestCount : null },
     { id: 'selftest', label: '自主テスト' },
+    { id: 'dailyreport', label: '日報' },
     { id: 'calendar', label: '今後の予定' },
   ];
 
@@ -856,6 +1021,16 @@ export default function StudentView({ student, store }) {
               onTake={(t) => { setTakingTest(t); setSelfTestMode('take'); }}
             />
           )
+        )}
+
+        {tab === 'dailyreport' && (
+          <DailyReportTab
+            student={student}
+            store={store}
+            today={today}
+            myReports={myReports}
+            todayReport={todayReport}
+          />
         )}
 
         {tab === 'calendar' && (
