@@ -11,6 +11,9 @@ export function subscribe(key, callback) {
     { includeMetadataChanges: true },
     (snap) => {
       callback(snap.exists() ? snap.data().items : [], snap.metadata.fromCache);
+    },
+    (error) => {
+      console.error('[Firestore error]', key, error.code, error.message);
     }
   );
 }
