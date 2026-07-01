@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>生徒用 使い方ガイド</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+      font-size: 13pt;
+      color: #1a1a1a;
+      background: white;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 22pt;
+      color: #4f46e5;
+      border-bottom: 3px solid #4f46e5;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 15pt;
+      color: #4f46e5;
+      background: #eef2ff;
+      padding: 8px 14px;
+      border-left: 4px solid #4f46e5;
+      margin: 28px 0 12px;
+    }
+    h3 {
+      font-size: 12pt;
+      color: #333;
+      margin: 16px 0 6px;
+      font-weight: bold;
+    }
+    p { line-height: 1.8; margin-bottom: 8px; }
+    ul { padding-left: 20px; line-height: 1.9; margin-bottom: 8px; }
+    li { margin-bottom: 4px; }
+    .url-box {
+      background: #f0f4ff;
+      border: 2px solid #4f46e5;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin: 14px 0;
+      font-size: 12pt;
+      word-break: break-all;
+    }
+    .url-box strong { color: #4f46e5; display: block; margin-bottom: 4px; }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin: 8px 0;
+    }
+    .step-num {
+      background: #4f46e5;
+      color: white;
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11pt;
+      font-weight: bold;
+    }
+    .step-text { line-height: 1.7; padding-top: 2px; }
+    .tag {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 10pt;
+      margin: 0 2px;
+    }
+    .note {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 11pt;
+      line-height: 1.7;
+    }
+    .tab-list {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .tab {
+      background: #4f46e5;
+      color: white;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 11pt;
+    }
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 24px 0;
+    }
+    @media print {
+      body { padding: 20px; }
+      h2 { break-before: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📘 生徒用 使い方ガイド</h1>
+
+  <!-- アクセス方法 -->
+  <h2>1. アクセス方法</h2>
+  <p>先生から受け取った専用URLをブラウザで開いてください。</p>
+  <div class="url-box">
+    <strong>あなたの専用URL</strong>
+    https://katekyo-lake.vercel.app/?student=（先生から渡されたコード）
+  </div>
+  <div class="note">
+    ⚠️ このURLはあなた専用です。ブックマークに保存しておくと便利です。
+  </div>
+
+  <hr class="section-divider" />
+
+  <!-- 画面の説明 -->
+  <h2>2. 画面の見方</h2>
+  <p>ページ上部にタブが並んでいます。タブをタップ（クリック）して切り替えます。</p>
+  <div class="tab-list">
+    <span class="tab">宿題</span>
+    <span class="tab">テスト</span>
+    <span class="tab">今後の予定</span>
+    <span class="tab">日報</span>
+  </div>
+
+  <hr class="section-divider" />
+
+  <!-- 宿題タブ -->
+  <h2>3. 宿題タブ</h2>
+
+  <h3>宿題の確認</h3>
+  <p>先生が出した宿題が一覧で表示されます。期日が近い順に並んでいます。</p>
+
+  <h3>宿題を完了にする</h3>
+  <div class="step"><div class="step-num">1</div><div class="step-text">宿題の横にあるチェックボックスをタップする</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-text">チェックが入ったら完了です</div></div>
+
+  <h3>自分で宿題を追加する</h3>
+  <p>自習や自分で決めた課題を記録できます。</p>
+  <div class="step"><div class="step-num">1</div><div class="step-text">「<strong>宿題を追加</strong>」ボタンをタップする</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-text">科目・内容・期日を入力して「<strong>保存</strong>」を押す</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-text">自分で追加した宿題には <span class="tag">自分で追加</span> マークが付きます</div></div>
+  <div class="note">
+    ⚠️ 自分で追加した宿題は自分で削除できます。先生が出した宿題は削除できません。
+  </div>
+
+  <hr class="section-divider" />
+
+  <!-- 今後の予定タブ -->
+  <h2>4. 今後の予定タブ</h2>
+  <p>先生が登録した授業の予定や行事が確認できます。</p>
+
+  <h3>カレンダー表示 / リスト表示の切り替え</h3>
+  <div class="step"><div class="step-num">1</div><div class="step-text">右上の「<strong>カレンダー</strong>」「<strong>リスト</strong>」ボタンで切り替える</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-text"><strong>カレンダー表示</strong>：月ごとに予定を確認できる</div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-text"><strong>リスト表示</strong>：日付順に予定が箇条書きで表示される</div></div>
+
+  <hr class="section-divider" />
+
+  <!-- 日報タブ -->
+  <h2>5. 日報タブ</h2>
+  <p>毎日の学習を記録するページです。先生がコメントを返してくれます。</p>
+
+  <h3>日報を書く</h3>
+  <div class="step"><div class="step-num">1</div><div class="step-text">「<strong>日報を書く</strong>」ボタンをタップする</div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-text">以下の4つを入力する：
+    <ul style="margin-top:6px">
+      <li>今日やったこと</li>
+      <li>その成果・できるようになったこと</li>
+      <li>学んだこと・気づき</li>
+      <li>わからなかったこと・次回聞きたいこと</li>
+    </ul>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-text">「<strong>送信</strong>」を押す</div></div>
+
+  <h3>先生のコメントを確認する</h3>
+  <p>日報一覧から過去の日報をタップすると、先生のコメントが表示されます。</p>
+
+  <hr class="section-divider" />
+
+  <!-- よくある質問 -->
+  <h2>6. よくある質問</h2>
+
+  <h3>Q. ページが「読み込み中…」のまま動かない</h3>
+  <p>インターネット接続を確認して、ページを再読み込み（更新）してください。</p>
+
+  <h3>Q. URLを失くしてしまった</h3>
+  <p>先生に連絡して、専用URLを再送してもらってください。</p>
+
+  <h3>Q. スマホからも使えますか？</h3>
+  <p>はい、スマートフォン・タブレット・パソコンすべてから使えます。</p>
+
+</body>
+</html>
